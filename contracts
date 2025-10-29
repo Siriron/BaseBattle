@@ -1,1 +1,67 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.19;
 
+/// @title BaseBattle - Onchain Element Battle Game
+/// @notice Players join battles by picking an element: Fire, Water, or Earth.
+contract BaseBattle {
+    enum Element { None, Fire, Water, Earth }
+
+    struct Player {
+        address wallet;
+        Element choice;
+        uint256 timestamp;
+    }
+
+    struct Battle {
+        uint256 id;
+        Player[] players;
+        bool finished;
+    }
+
+    mapping(uint256 => Battle) private battles;
+    uint256 public totalBattles;
+    uint256 public maxPlayersPerBattle = 5;
+
+    event JoinedBattle(uint256 indexed battleId, address indexed player, Element choice);
+    event BattleStarted(uint256 indexed battleId);
+    event BattleFinished(uint256 indexed battleId, string message);
+
+    function createBattle() external returns (uint256 battleId) {
+        battleId = totalBattles++;
+        battles[battleId].id = battleId;
+        emit BattleStarted(battleId);
+    }
+
+    function joinBattle(uint256 battleId, Element choice) external {
+        Battle storage b = battles[battleId];
+        require(!b.finished, "battle finished");
+        require(choice != Element.None, "invalid choice");
+        require(b.players.length < maxPlayersPerBattle, "battle full");
+
+        b.players.push(Player(msg.sender, choice, block.timestamp));
+        emit JoinedBattle(battleId, msg.sender, choice);
+
+        if (b.players.length == maxPlayersPerBattle) {
+            b.finished = true;
+            emit BattleFinished(battleId, "Battle full!");
+        }
+    }
+
+    function getBattle(uint256 battleId)
+        external
+        view
+        returns (Player[] memory players, bool finished)
+    {
+        Battle storage b = battles[battleId];
+        return (b.players, b.finished);
+    }
+
+    function battlePlayerCount(uint256 battleId) external view returns (uint256) {
+        return battles[battleId].players.length;
+    }
+
+    function setMaxPlayers(uint256 newMax) external {
+        require(newMax >= 2 && newMax <= 20, "invalid range");
+        maxPlayersPerBattle = newMax;
+    }
+}
