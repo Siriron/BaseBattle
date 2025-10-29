@@ -52,8 +52,4 @@ Each battle is stored permanently onchain.
 This is part of my personal Base development practice.  
 I deploy simple, creative, and safe contracts on Base to learn and experiment with onchain development.  
 
-- **GitHub:** [https://github.com/YourGitHubUsername/BaseBattle]  
-
----
-
 ### 🚀 Build on Base
